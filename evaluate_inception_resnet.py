@@ -52,6 +52,8 @@ with tf.device('/CPU:0'):
     model.load_weights('weights/inception_resnet_weights.h5')
 
     score_list = []
+    count = 0
+    dataset_mean = 0
 
     for img_path in imgs:
         img = load_img(img_path, target_size=target_size)
@@ -63,14 +65,16 @@ with tf.device('/CPU:0'):
         scores = model.predict(x, batch_size=1, verbose=0)[0]
 
         mean = mean_score(scores)
+        dataset_mean+=mean
         std = std_score(scores)
 
         file_name = Path(img_path).name.lower()
         score_list.append((file_name, mean))
 
         print("Evaluating : ", img_path)
-        print("NIMA Score : %0.3f +- (%0.3f)" % (mean, std))
+        print("NIMA Score : %0.3f : %0.3f" % (mean, std))
         print()
+        count+=1
 
     if rank_images:
         print("*" * 40, "Ranking Images", "*" * 40)
@@ -78,5 +82,7 @@ with tf.device('/CPU:0'):
 
         for i, (name, score) in enumerate(score_list):
             print("%d)" % (i + 1), "%s : Score = %0.5f" % (name, score))
+			
+    print("Dataset mean =", float(dataset_mean)/count)
 
 
